@@ -451,7 +451,8 @@ function(retval, user_index, state)
 		if ThumbLY >= 30000 and Stamina >0 then
 			pawn.RunSpeed=600
 			isSprinting=true
-		else pawn.RunSpeed= 320
+		elseif ThumbLY <30000 or Stamina <=0 then 
+			pawn.RunSpeed= 320
 			isSprinting=false
 		end
 	end
@@ -869,11 +870,11 @@ end
 		isHapticZoneR= true
 		RZone=3-- Over Head
 		
-	elseif RCheckZone(-100,-60,22,50,-10,10)   then
+	elseif RCheckZone(-100,-60,5,50,-10,30)   then
 		isHapticZoneR= true
 		RZone=4--RHip
 		
-	elseif RCheckZone(-100,-60,-30,-5,-10,30)   then
+	elseif RCheckZone(-100,-60,-50,-5,-10,30)   then
 		isHapticZoneR= true
 		RZone=5--LHip
 		
@@ -1014,7 +1015,7 @@ end
 			pawn:ToggleNightvisionGoggles()
 		elseif RZone== 3 and rGrabActive then
 			pawn:ToggleNightvisionGoggles()
-		elseif LZone== 8 and lGrabActive then
+		elseif LZone== 4 and lGrabActive then
 			pawn:EquipFlashbang()
 		elseif LZone== 6 and lGrabActive then
 			pawn:EquipCSGas()
@@ -1024,7 +1025,7 @@ end
 			pawn:EquipLongTactical()
 		elseif RZone==4 and rGrabActive then
 			pawn.InventoryComp:EquipItemFromGroup_Index(1,1)
-		elseif RZone==6 and rGrabActive then
+		elseif RZone==7 and rGrabActive then
 			isTablet = true
 		end
 		
@@ -1069,36 +1070,70 @@ end
 	--print(HmdVRPos.z)
 
 if PhysicalLeaning then
-	if LTrigger > 230 then
-		pawn.FreeLeanZ= VRHeightDiffFactor*80
-		isLean=true
-		uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "false")
+	if isRhand then
+		if LTrigger > 230 then
+			pawn.FreeLeanZ= VRHeightDiffFactor*80
+			isLean=true
+			uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "false")
+			
+			DefaultVRShift= pawn:K2_GetActorLocation()
+			
+			
+			VRShiftDiff= HmdLocation-DefaultVRShift
+			
+			VRShiftDiffX= (VRShiftDiff.x)*math.cos(-RotDiff/180*math.pi)- (VRShiftDiff.y)*math.sin(-RotDiff/180*math.pi)
+			VRShiftDiffY=  (VRShiftDiff.x)*math.sin(-RotDiff/180*math.pi) + (VRShiftDiff.y)*math.cos(-RotDiff/180*math.pi)
+		--	print(RotDiff)
+		--	print(VRShiftDiffX .. "            ".. VRShiftDiffY)
+			pawn.FreeLeanX= VRShiftDiffY*0.38
+			if  math.abs(VRShiftDiffY)> 30 then
+			pawn.FreeLeanZ= VRHeightDiffFactor*40
+			end
+		else
+			uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "true")
+		--	if isLean then
+		--		DefaultVRHeight=HmdVRPos.y
+		--		isLean= false
+		--	end
+			pawn.FreeLeanX=0
+		end
 		
-		DefaultVRShift= pawn:K2_GetActorLocation()
-		
-		
-		VRShiftDiff= HmdLocation-DefaultVRShift
-		
-		VRShiftDiffX= (VRShiftDiff.x)*math.cos(-RotDiff/180*math.pi)- (VRShiftDiff.y)*math.sin(-RotDiff/180*math.pi)
-		VRShiftDiffY=  (VRShiftDiff.x)*math.sin(-RotDiff/180*math.pi) + (VRShiftDiff.y)*math.cos(-RotDiff/180*math.pi)
-	--	print(RotDiff)
-	--	print(VRShiftDiffX .. "            ".. VRShiftDiffY)
-		pawn.FreeLeanX= VRShiftDiffY*0.38
-		if  math.abs(VRShiftDiffY)> 30 then
-		pawn.FreeLeanZ= VRHeightDiffFactor*40
+		if ResetHeight then
+			DefaultVRHeight=HmdVRPos.y
+			ResetHeight=false
 		end
 	else
-		uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "true")
-	--	if isLean then
-	--		DefaultVRHeight=HmdVRPos.y
-	--		isLean= false
-	--	end
-		pawn.FreeLeanX=0
-	end
-	
-	if ResetHeight then
-		DefaultVRHeight=HmdVRPos.y
-		ResetHeight=false
+		if RTrigger > 230 then
+			pawn.FreeLeanZ= VRHeightDiffFactor*80
+			isLean=true
+			uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "false")
+			
+			DefaultVRShift= pawn:K2_GetActorLocation()
+			
+			
+			VRShiftDiff= HmdLocation-DefaultVRShift
+			
+			VRShiftDiffX= (VRShiftDiff.x)*math.cos(-RotDiff/180*math.pi)- (VRShiftDiff.y)*math.sin(-RotDiff/180*math.pi)
+			VRShiftDiffY=  (VRShiftDiff.x)*math.sin(-RotDiff/180*math.pi) + (VRShiftDiff.y)*math.cos(-RotDiff/180*math.pi)
+		--	print(RotDiff)
+		--	print(VRShiftDiffX .. "            ".. VRShiftDiffY)
+			pawn.FreeLeanX= VRShiftDiffY*0.38
+			if  math.abs(VRShiftDiffY)> 30 then
+			pawn.FreeLeanZ= VRHeightDiffFactor*40
+			end
+		else
+			uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "true")
+		--	if isLean then
+		--		DefaultVRHeight=HmdVRPos.y
+		--		isLean= false
+		--	end
+			pawn.FreeLeanX=0
+		end
+		
+		if ResetHeight then
+			DefaultVRHeight=HmdVRPos.y
+			ResetHeight=false
+		end
 	end
 end
 	
