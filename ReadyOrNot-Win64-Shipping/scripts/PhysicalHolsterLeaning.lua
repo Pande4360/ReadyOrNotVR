@@ -391,7 +391,17 @@ local RWeaponZone=0
 local inMenu=false
 local isTablet=false
 local ResetHeight=false
-
+local isSprinting=false
+local StartSprintTime=0
+local SprintTime=0
+local SprintTimeActivate=false
+local StartRecoverTime=0
+local RecoverTime=0
+local RecoverTimeActivate=true
+local Stamina=100
+local SprintTimeLast=0
+local StaminaLast=100
+local StaminaLastNew=100
 uevr.sdk.callbacks.on_xinput_get_state(
 function(retval, user_index, state)
 
@@ -423,8 +433,12 @@ function(retval, user_index, state)
 			--unpressButton(state, XINPUT_GAMEPAD_DPAD_UP			)
 			unpressButton(state, XINPUT_GAMEPAD_DPAD_DOWN	    )
 		end
-		if ThumbRY >= 30000 then
-			pressButton(state, XINPUT_GAMEPAD_DPAD_DOWN)
+		if ThumbRY >= 30000 and Stamina >0 then
+			pawn.RunSpeed=600
+			isSprinting=true
+		elseif ThumbRY <30000 or Stamina <=0 then 
+			pawn.RunSpeed= 320
+			isSprinting=false
 		end
 	else 
 		
@@ -434,8 +448,11 @@ function(retval, user_index, state)
 			--unpressButton(state, XINPUT_GAMEPAD_DPAD_UP			)
 			unpressButton(state, XINPUT_GAMEPAD_DPAD_DOWN	    )
 		end
-		if ThumbLY >= 30000 then
-			pressButton(state, XINPUT_GAMEPAD_DPAD_DOWN)
+		if ThumbLY >= 30000 and Stamina >0 then
+			pawn.RunSpeed=600
+			isSprinting=true
+		else pawn.RunSpeed= 320
+			isSprinting=false
 		end
 	end
 	
@@ -637,7 +654,62 @@ end)
 	local DefaultVRShift= Vector3f.new (0,0,0)
 	local VRShiftDiff=Vector3f.new (0,0,0)
 	local isLean= false
+
+
+local function RecoverTimer()
+	SprintTimeActivate=false
 	
+		if  RecoverTimeActivate==false then
+			StartRecoverTime=os.clock() 
+			RecoverTimeActivate=true
+			--StaminaLastNew=Stamina
+			RecoverTime=0
+		elseif  RecoverTimeActivate==true then
+			RecoverTime= os.clock()- StartRecoverTime
+		end
+		
+	
+end
+	
+local function SprintTimer()
+	RecoverTimeActivate=false
+	if  SprintTimeActivate==false then
+		--StaminaLast=Stamina
+		StartSprintTime=os.clock() 
+		SprintTimeActivate=true
+		SprintTime=0
+	elseif  SprintTimeActivate==true then
+		SprintTime= os.clock()- StartSprintTime
+		SprintTimeLast=os.clock()
+	end
+end
+
+
+
+local function SubStamina()
+	SprintTimer()
+	if Stamina >0 then
+		
+		Stamina = StaminaLast - SprintTime* 20
+		StaminaLastNew=Stamina
+	elseif  Stamina <= 0 then
+		Stamina = 0
+		StaminaLastNew=0
+	end
+end
+
+local function AddStamina()
+	if os.clock() - SprintTimeLast > 3 then
+		RecoverTimer()		
+		if Stamina <100 then
+			Stamina= StaminaLastNew + RecoverTime* 20
+			StaminaLast=Stamina
+		elseif isSprinting==false and Stamina >= 100 then
+			Stamina = 100
+			StaminaLast=100
+		end
+	end
+end	
 	
 uevr.sdk.callbacks.on_pre_engine_tick(
 	function(engine, delta)
@@ -653,11 +725,16 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 	local RHandRotation = right_hand_component:K2_GetComponentRotation()
 	local LHandRotation = left_hand_component:K2_GetComponentRotation()
 
-
-
-		
-
-
+	--Stamina
+	if isSprinting then
+		SubStamina()
+	else AddStamina()
+	end
+	
+	
+	print(RecoverTime)
+	print("stamLast"..StaminaLast)
+	print("stamina:" ..Stamina)
 	--if PhysicalLeaning then
 	--	if HmdRotation.z > LeanAngle then
 	--		leanState = 2
@@ -760,73 +837,109 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 			isHapticZoneWLLast=isHapticZoneWL
 		end
 	end
+	
+		--FUNCTION FOR ZONES, dont edit this
+local function RCheckZone(Zmin,Zmax,Ymin,Ymax,Xmin,Xmax) -- Z: UP/DOWN, Y:RIGHT LEFT, X FORWARD BACKWARD, checks if RHand is in RZone
+	if RHandNewZ > Zmin and RHandNewZ < Zmax and RHandNewY > Ymin and RHandNewY < Ymax and RHandNewX > Xmin and RHandNewX < Xmax then
+		return true
+	else 
+		return false
+	end
+end
+local function LCheckZone(Zmin,Zmax,Ymin,Ymax,Xmin,Xmax) -- Z: UP/DOWN, Y:RIGHT LEFT, X FORWARD BACKWARD, checks if LHand is in LZone
+	if LHandNewZ > Zmin and LHandNewZ < Zmax and LHandNewY > Ymin and LHandNewY < Ymax and LHandNewX > Xmin and LHandNewX < Xmax then
+		return true
+	else 
+		return false
+	end
+end
+	
+	
+	
 	-----EDIT HERE-------------
 	---------------------------
-	--define Haptic zones RHand
-	if RHandNewZ > -10 and RHandNewY > 10 and RHandNewX < -5 then
-		--pawn:EquipPrimaryItem()
+	--define Haptic zones RHand Z: UP/DOWN, Y:RIGHT LEFT, X FORWARD BACKWARD, checks if RHand is in RZone
+	if 	   RCheckZone(-10, 15, 10, 30, -10, 20) then 
 		isHapticZoneR =true
 		RZone=1-- RShoulder
-	elseif RHandNewZ >-10 and RHandNewY < -10 and RHandNewX < -5 then
+		
+	elseif RCheckZone(-10, 15, -30, -10, -10, 20)      then
 		isHapticZoneR =true
 		RZone=2--Left Shoulder
-	elseif RHandNewZ >0 and RHandNewY < 5 and RHandNewY > -5 and RHandNewX < 10 and RHandNewX >0 then
+		
+	elseif RCheckZone(0, 20, -5, 5, 0, 20)  then
 		isHapticZoneR= true
 		RZone=3-- Over Head
-	elseif RHandNewZ < -60 and RHandNewY > 22 and RHandNewX < 10   then
+		
+	elseif RCheckZone(-100,-60,22,50,-10,10)   then
 		isHapticZoneR= true
-		RZone=4--RPouch
-	elseif RHandNewZ < -60 and RHandNewY < -22 and RHandNewX < 10  then
+		RZone=4--RHip
+		
+	elseif RCheckZone(-100,-60,-30,-5,-10,30)   then
 		isHapticZoneR= true
-		RZone=5--LPouch
-	elseif RHandNewZ < -25 and RHandNewZ > -40 and RHandNewY <-5 and RHandNewY > -15  and RHandNewX > 0 and RHandNewX < 10  then
+		RZone=5--LHip
+		
+	elseif RCheckZone(-40,-25,-15,-5,0,10)   then
 		isHapticZoneR= true
 		RZone=6--ChestLeft
-	elseif RHandNewZ < -25 and RHandNewZ > -40 and RHandNewY < 15 and RHandNewY > 5 and RHandNewX > 0 and RHandNewX < 10  then
+		
+	elseif RCheckZone(-40,-25,5,15,0,10)  then
 		isHapticZoneR= true
 		RZone=7--ChestRight
-	elseif RHandNewZ < -50  and RHandNewY < 20 and RHandNewY > -20 and RHandNewX < -15  then
+		
+	elseif RCheckZone(-100,-50,-20,20,-30,-15)	  then
 		isHapticZoneR= true
 		RZone=8--LowerBack Center
-	elseif RHandNewZ > -5  and RHandNewZ < 10 and RHandNewY < 0 and RHandNewY > -10 and RHandNewX > 0 and RHandNewX < 10  then
+		
+	elseif RCheckZone(-5,10,-10,0,0,10) then
 		isHapticZoneR= true
 		RZone=9--LeftEar
-	elseif RHandNewZ > -5  and RHandNewZ < 10 and RHandNewY < 10 and RHandNewY > 0 and RHandNewX > 0 and RHandNewX < 10  then
+		
+	elseif RCheckZone(-5,10,0,10,0,10)  then
 		isHapticZoneR= true
 		RZone=10--RightEar
 	else 
 		isHapticZoneR= false
 		RZone=0--EMPTY
 	end
-	--define Haptic zone Lhandx
-	if LHandNewZ > -10 and LHandNewY > 10 and LHandNewX < -5 then
+	--define Haptic zone Lhandx Z: UP/DOWN, Y:RIGHT LEFT, X FORWARD BACKWARD, checks if RHand is in RZone
+	if LCheckZone(-10, 15, 10, 30, -10, 20) then
 		isHapticZoneL =true
 		LZone=1-- RShoulder
-	elseif LHandNewZ >-10 and LHandNewY < -10 and LHandNewX < -5 then
+		
+	elseif LCheckZone (-10, 15, -30, -10, -10, 20) then
 		isHapticZoneL =true
 		LZone=2--Left Shoulder
-	elseif LHandNewZ >0 and LHandNewY < 5 and LHandNewY > -5 and LHandNewX < 10 and LHandNewX >0 then
+		
+	elseif LCheckZone(0, 30, -5, 5, 0, 20) then
 		isHapticZoneL= true
 		LZone=3-- Over Head
-	elseif LHandNewZ < -60 and LHandNewY > 22 and LHandNewX < 10   then
+		
+	elseif LCheckZone(-100,-60,22,50,-10,10)  then
 		isHapticZoneL= true
 		LZone=4--RPouch
-	elseif LHandNewZ < -60 and LHandNewY < -22 and LHandNewX < 10  then
+		
+	elseif LCheckZone(-100,-60,-50,-10,-10,10)  then
 		isHapticZoneL= true
 		LZone=5--LPouch
-	elseif LHandNewZ < -25 and LHandNewZ > -40 and LHandNewY <-5 and LHandNewY > -15  and LHandNewX > 0 and LHandNewX < 10  then
+		
+	elseif LCheckZone(-40,-25,-15,-5,0,10)   then
 		isHapticZoneL= true
 		LZone=6--ChestLeft
-	elseif LHandNewZ < -25 and LHandNewZ > -40 and LHandNewY < 15 and LHandNewY > 5 and LHandNewX > 0 and LHandNewX < 10  then
+		
+	elseif LCheckZone(-40,-25,5,15,0,10)  then
 		isHapticZoneL= true
 		LZone=7--ChestRight
-	elseif LHandNewZ < -50  and LHandNewY < 20 and LHandNewY > -20 and LHandNewX < -15  then
+		
+	elseif LCheckZone(-100,-50,-20,20,-30,-15) then
 		isHapticZoneL= true
 		LZone=8--LowerBack Center
-	elseif LHandNewZ > -15  and LHandNewZ < 10 and LHandNewY < -5 and LHandNewY > -15 and LHandNewX > 0 and LHandNewX < 10  then
+		
+	elseif LCheckZone(-5,10,-10,0,0,10)  then
 		isHapticZoneL= true
 		LZone=9--LeftEar
-	elseif LHandNewZ > -15  and LHandNewZ < 10 and LHandNewY < 15 and LHandNewY > 5 and LHandNewX > 0 and LHandNewX < 10  then
+		
+	elseif LCheckZone(-5,10,0,10,0,10) then
 		isHapticZoneL= true
 		LZone=10--RightEar
 	else 
@@ -878,8 +991,9 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 			pawn:ToggleNightvisionGoggles()
 		elseif LZone== 3 and lGrabActive then
 			pawn:ToggleNightvisionGoggles()
-		elseif RZone== 8 and rGrabActive then
+		elseif RZone== 5 and rGrabActive then
 			pawn:EquipFlashbang()
+			
 		elseif RZone== 6 and rGrabActive then
 			pawn:EquipCSGas()
 		elseif RZone== 7 and rGrabActive then
@@ -888,7 +1002,7 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 			pawn:EquipLongTactical()
 		elseif LZone==5 and lGrabActive then
 			pawn.InventoryComp:EquipItemFromGroup_Index(1,1)
-		elseif LZone==8 and lGrabActive then
+		elseif LZone==6 and lGrabActive then
 			isTablet = true
 		end
 	else 
@@ -912,7 +1026,7 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 			pawn:EquipLongTactical()
 		elseif RZone==4 and rGrabActive then
 			pawn.InventoryComp:EquipItemFromGroup_Index(1,1)
-		elseif RZone==8 and rGrabActive then
+		elseif RZone==6 and rGrabActive then
 			isTablet = true
 		end
 		
