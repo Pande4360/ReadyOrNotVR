@@ -732,9 +732,7 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 	end
 	
 	
-	print(RecoverTime)
-	print("stamLast"..StaminaLast)
-	print("stamina:" ..Stamina)
+	
 	--if PhysicalLeaning then
 	--	if HmdRotation.z > LeanAngle then
 	--		leanState = 2
