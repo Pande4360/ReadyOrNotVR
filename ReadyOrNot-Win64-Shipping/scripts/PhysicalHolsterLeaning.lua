@@ -1,8 +1,11 @@
 --CONFIG--
 --------	
 	local isRhand = true
+	local isLeftHandModeTriggerSwitchOnly = true
 	local HapticFeedback = true
 	local PhysicalLeaning = true
+	local LeanAngle = 30		--Treshhold before it starts leaning
+	local PreLeanAngle = 15     --Treshhold before roomscale gets deactivated, but character is not really leaning but you can start peeking around corners without exposing yourself.
 --------
 --------	
 	local api = uevr.api
@@ -386,6 +389,8 @@ local RZone=0
 local LWeaponZone=0
 local RWeaponZone=0
 local inMenu=false
+local isTablet=false
+local ResetHeight=false
 
 uevr.sdk.callbacks.on_xinput_get_state(
 function(retval, user_index, state)
@@ -410,74 +415,84 @@ function(retval, user_index, state)
 	
 	
 	
-	if isRhand then
+	if isRhand or isLeftHandModeTriggerSwitchOnly then
+		
 		if not rShoulder then
 			unpressButton(state, XINPUT_GAMEPAD_DPAD_RIGHT		)
 			unpressButton(state, XINPUT_GAMEPAD_DPAD_LEFT		)
 			--unpressButton(state, XINPUT_GAMEPAD_DPAD_UP			)
 			unpressButton(state, XINPUT_GAMEPAD_DPAD_DOWN	    )
 		end
+		if ThumbRY >= 30000 then
+			pressButton(state, XINPUT_GAMEPAD_DPAD_DOWN)
+		end
 	else 
+		
 		if not lShoulder then
 			unpressButton(state, XINPUT_GAMEPAD_DPAD_RIGHT		)
 			unpressButton(state, XINPUT_GAMEPAD_DPAD_LEFT		)
 			--unpressButton(state, XINPUT_GAMEPAD_DPAD_UP			)
 			unpressButton(state, XINPUT_GAMEPAD_DPAD_DOWN	    )
 		end
+		if ThumbLY >= 30000 then
+			pressButton(state, XINPUT_GAMEPAD_DPAD_DOWN)
+		end
 	end
 	
 	if not isRhand then
-		state.Gamepad.sThumbRX=ThumbLX
-		state.Gamepad.sThumbRY=ThumbLY
-		state.Gamepad.sThumbLX=ThumbRX
-		state.Gamepad.sThumbLY=ThumbRY
 		state.Gamepad.bLeftTrigger=RTrigger
 		state.Gamepad.bRightTrigger=LTrigger
-		unpressButton(state, XINPUT_GAMEPAD_B)
-		unpressButton(state, XINPUT_GAMEPAD_A				)
-		unpressButton(state, XINPUT_GAMEPAD_X				)	
-		unpressButton(state, XINPUT_GAMEPAD_Y				)
-		----unpressButton(state, XINPUT_GAMEPAD_DPAD_RIGHT		)
-		----unpressButton(state, XINPUT_GAMEPAD_DPAD_LEFT		)
-		----unpressButton(state, XINPUT_GAMEPAD_DPAD_UP			)
-		----unpressButton(state, XINPUT_GAMEPAD_DPAD_DOWN	    )
-		--unpressButton(state, XINPUT_GAMEPAD_LEFT_SHOULDER	)
-		unpressButton(state, XINPUT_GAMEPAD_RIGHT_SHOULDER	)
-		unpressButton(state, XINPUT_GAMEPAD_LEFT_THUMB		)
-		unpressButton(state, XINPUT_GAMEPAD_RIGHT_THUMB		)
-		if Ybutton then
-			pressButton(state,XINPUT_GAMEPAD_X)
+		if not isLeftHandModeTriggerSwitchOnly then
+			state.Gamepad.sThumbRX=ThumbLX
+			state.Gamepad.sThumbRY=ThumbLY
+			state.Gamepad.sThumbLX=ThumbRX
+			state.Gamepad.sThumbLY=ThumbRY
+			
+			unpressButton(state, XINPUT_GAMEPAD_B)
+			unpressButton(state, XINPUT_GAMEPAD_A				)
+			unpressButton(state, XINPUT_GAMEPAD_X				)	
+			unpressButton(state, XINPUT_GAMEPAD_Y				)
+			----unpressButton(state, XINPUT_GAMEPAD_DPAD_RIGHT		)
+			----unpressButton(state, XINPUT_GAMEPAD_DPAD_LEFT		)
+			----unpressButton(state, XINPUT_GAMEPAD_DPAD_UP			)
+			----unpressButton(state, XINPUT_GAMEPAD_DPAD_DOWN	    )
+			--unpressButton(state, XINPUT_GAMEPAD_LEFT_SHOULDER	)
+			unpressButton(state, XINPUT_GAMEPAD_RIGHT_SHOULDER	)
+			unpressButton(state, XINPUT_GAMEPAD_LEFT_THUMB		)
+			unpressButton(state, XINPUT_GAMEPAD_RIGHT_THUMB		)
+			if Ybutton then
+				pressButton(state,XINPUT_GAMEPAD_X)
+			end
+			if Bbutton then
+			--	unpressButton(state, XINPUT_GAMEPAD_B)	
+				pressButton(state,XINPUT_GAMEPAD_A)
+			end
+			if Xbutton then
+				pressButton(state,XINPUT_GAMEPAD_Y)
+				--unpressButton(state, XINPUT_GAMEPAD_X)
+			end	
+			if Abutton then
+				pressButton(state,XINPUT_GAMEPAD_B)
+				--unpressButton(state, XINPUT_GAMEPAD_A)
+			end		
+			
+			if lShoulder then
+				pressButton(state,XINPUT_GAMEPAD_RIGHT_SHOULDER)
+		--		unpressButton(state, XINPUT_GAMEPAD_LEFT_SHOULDER)
+			end
+			if rShoulder then
+				pressButton(state,XINPUT_GAMEPAD_LEFT_SHOULDER)
+			--	unpressButton(state, XINPUT_GAMEPAD_RIGHT_SHOULDER)
+			end
+			if lThumb then
+				pressButton(state,XINPUT_GAMEPAD_RIGHT_THUMB)
+--				unpressButton(state, XINPUT_GAMEPAD_LEFT_THUMB)
+			end	
+			if rThumb then
+				pressButton(state,XINPUT_GAMEPAD_LEFT_THUMB)
+		--		unpressButton(state, XINPUT_GAMEPAD_RIGHT_THUMB)
+			end
 		end
-		if Bbutton then
-		--	unpressButton(state, XINPUT_GAMEPAD_B)	
-			pressButton(state,XINPUT_GAMEPAD_A)
-		end
-		if Xbutton then
-			pressButton(state,XINPUT_GAMEPAD_Y)
-			--unpressButton(state, XINPUT_GAMEPAD_X)
-		end	
-		if Abutton then
-			pressButton(state,XINPUT_GAMEPAD_B)
-			--unpressButton(state, XINPUT_GAMEPAD_A)
-		end		
-		
-		if lShoulder then
-			pressButton(state,XINPUT_GAMEPAD_RIGHT_SHOULDER)
-	--		unpressButton(state, XINPUT_GAMEPAD_LEFT_SHOULDER)
-		end
-		if rShoulder then
-			pressButton(state,XINPUT_GAMEPAD_LEFT_SHOULDER)
-		--	unpressButton(state, XINPUT_GAMEPAD_RIGHT_SHOULDER)
-		end
-		if lThumb then
-			pressButton(state,XINPUT_GAMEPAD_RIGHT_THUMB)
---			unpressButton(state, XINPUT_GAMEPAD_LEFT_THUMB)
-		end	
-		if rThumb then
-			pressButton(state,XINPUT_GAMEPAD_LEFT_THUMB)
-	--		unpressButton(state, XINPUT_GAMEPAD_RIGHT_THUMB)
-		end
-		
 	end
 	if not inMenu then
 		unpressButton(state, XINPUT_GAMEPAD_LEFT_SHOULDER	)		
@@ -486,6 +501,12 @@ function(retval, user_index, state)
 		unpressButton(state, XINPUT_GAMEPAD_X				)	
 		unpressButton(state, XINPUT_GAMEPAD_Y				)
 	end
+	
+	
+	
+	
+	
+	
 	--Unpress when in Zone
 --   local isPaused = api:get_player_controller().PauseMenu.Visibility
 --	--print(isPaused)
@@ -522,36 +543,36 @@ function(retval, user_index, state)
 	if RWeaponZone == 2 then
 		state.Gamepad.bLeftTrigger=0
 	end
-	-- Attachement singlepress fix
-	if lThumb and lThumbSwitchState==0 then 
-		lThumbOut = true 
-		lThumbSwitchState=1
-	elseif lThumb and lThumbSwitchState ==1 then
-		lThumbOut = false
-	elseif not lThumb then
-		lThumbOut = false
+	
+	-- Button singlepress fixes
+	-- From Equip calls:
+	if isTablet then
+		pressButton(state, XINPUT_GAMEPAD_BACK)
+		isTablet=false
+	end
+	
+	if not lThumb then 
+		--pressButton(state, XINPUT_GAMEPAD_DPAD_RIGHT)
 		lThumbSwitchState=0
 	end
-	if rThumb and rThumbSwitchState==0 then 
-		rThumbOut = true 
-		rThumbSwitchState=1
-	elseif rThumb and rThumbSwitchState ==1 then
-		rThumbOut = false
-	elseif not rThumb then
-		rThumbOut = false
+	
+	if not rThumb then
+		--pressButton(state, XINPUT_GAMEPAD_DPAD_RIGHT)
 		rThumbSwitchState=0
 	end
+	
 	--print(rThumbOut)
 	if isReloading then
 		pressButton(state, XINPUT_GAMEPAD_X)
 	end
 	
 	
-	--Ready UP
+	--Reset Height
 	if lGrabActive and rGrabActive then
 	    ReadyUpTick= ReadyUpTick+1
 		if ReadyUpTick ==120 then
-			api:get_player_controller(0):ReadyUp()
+			--api:get_player_controller(0):ReadyUp()
+			ResetHeight=true
 		end
 	else 
 		ReadyUpTick=0
@@ -603,11 +624,21 @@ end)
 	local RightController= uevr.params.vr.get_right_joystick_source()
 	
 	local leanState=0 --1 =left, 2=right
+	local HmdVRRot =UEVR_Quaternionf.new()
+	local HmdVRPos =UEVR_Vector3f.new()
 	
 	--print(right_hand_component:K2_GetComponentLocation())
 --local LHandLocation = left_hand_actor:K2_GetActorLocation()
 --local HMDLocation = hmd_actor:K2_GetActorLocation()
-
+--
+	uevr.params.vr.get_pose(0, HmdVRPos, HmdVRRot)
+	local DefaultVRHeight = HmdVRPos.y
+	local VRHeightDiffFactor=0
+	local DefaultVRShift= Vector3f.new (0,0,0)
+	local VRShiftDiff=Vector3f.new (0,0,0)
+	local isLean= false
+	
+	
 uevr.sdk.callbacks.on_pre_engine_tick(
 	function(engine, delta)
 	pawn=api:get_local_pawn(0)
@@ -615,46 +646,54 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 	RHandLocation=right_hand_component:K2_GetComponentLocation()
 	LHandLocation=left_hand_component:K2_GetComponentLocation()
 	HmdLocation= hmd_component:K2_GetComponentLocation()
+	
+
 
 	local HmdRotation= hmd_component:K2_GetComponentRotation()
 	local RHandRotation = right_hand_component:K2_GetComponentRotation()
 	local LHandRotation = left_hand_component:K2_GetComponentRotation()
 
 
-	--LEANING
-	if PhysicalLeaning then
-	
-		if HmdRotation.z > 20 then
-			leanState = 2
-			--pawn:ToggleLeanRight(true)
-		elseif HmdRotation.z <20 and HmdRotation.z>-20 then
-			leanState=0
-			--pawn:ToggleLeanRight(false) 
-			--pawn:ToggleLeanLeft(false)
-		elseif HmdRotation.z < -20 then 
-			leanState=1
-			--pawn:ToggleLeanLeft(true)
-		end
+
 		
-		if leanState == 0 and leanStateLast ~= leanState then
-			if leanStateLast == 1 then
-				pawn:ToggleLeanLeft(false)
-			elseif leanStateLast ==2 then
-				pawn:ToggleLeanRight(false)
-			end
-			leanStateLast=leanState
-			uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "true")
-		elseif leanState ==1 and leanStateLast ~= leanState then
-			pawn:ToggleLeanLeft(true)
-			leanStateLast=leanState
-			uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "false")
-		elseif leanState == 2 and leanStateLast ~= leanState then
-			pawn:ToggleLeanRight(true)
-			leanStateLast=leanState
-			uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "false")
-		end
-	
-	end	
+
+
+	--if PhysicalLeaning then
+	--	if HmdRotation.z > LeanAngle then
+	--		leanState = 2
+	--		--pawn:ToggleLeanRight(true)
+	--	elseif HmdRotation.z <LeanAngle and HmdRotation.z>-LeanAngle then
+	--		leanState=0
+	--		--pawn:ToggleLeanRight(false) 
+	--		--pawn:ToggleLeanLeft(false)
+	--	elseif HmdRotation.z < -LeanAngle then 
+	--		leanState=1
+	--		--pawn:ToggleLeanLeft(true)
+	--	end
+	--	
+	--	if leanState == 0 and leanStateLast ~= leanState then
+	--		if leanStateLast == 1 then
+	--			pawn:ToggleLeanLeft(false)
+	--		elseif leanStateLast ==2 then
+	--			pawn:ToggleLeanRight(false)
+	--		end
+	--		leanStateLast=leanState
+	--		--uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "true")
+	--	elseif leanState ==1 and leanStateLast ~= leanState then
+	--		pawn:ToggleLeanLeft(true)
+	--		leanStateLast=leanState
+	--		--uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "false")
+	--	elseif leanState == 2 and leanStateLast ~= leanState then
+	--		pawn:ToggleLeanRight(true)
+	--		leanStateLast=leanState
+	--		--uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "false")
+	--	end
+	--	if  math.abs(HmdRotation.z) > PreLeanAngle then
+	--		uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "false")
+	--	else uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "true")
+	--	end
+	--
+	--end	
 	
 	-- Y IS LEFT RIGHT, X IS BACK FORWARD, Z IS DOWN  UP
 	local RotDiff= HmdRotation.y	--(z axis of location)
@@ -850,7 +889,7 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 		elseif LZone==5 and lGrabActive then
 			pawn.InventoryComp:EquipItemFromGroup_Index(1,1)
 		elseif LZone==8 and lGrabActive then
-			pawn.InventoryComp:EquipItemFromGroup_Index(8,0)
+			isTablet = true
 		end
 	else 
 		if LZone == 2 and lGrabActive then
@@ -874,7 +913,7 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 		elseif RZone==4 and rGrabActive then
 			pawn.InventoryComp:EquipItemFromGroup_Index(1,1)
 		elseif RZone==8 and rGrabActive then
-			pawn.InventoryComp:EquipItemFromGroup_Index(8,0)
+			isTablet = true
 		end
 		
 	end
@@ -887,8 +926,9 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 			end
 		elseif RWeaponZone == 2 and LTrigger > 230 then
 			pawn:CycleFireMode()
-		elseif RWeaponZone==3 and lThumbOut then
+		elseif RWeaponZone==3 and lThumb and lThumbSwitchState==0 then
 			pawn:ToggleUnderbarrelAttachment()
+			lThumbSwitchState=1
 		end
 	else
 		
@@ -899,10 +939,57 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 			end
 		elseif LWeaponZone== 2 and RTrigger > 230 then
 			pawn:CycleFireMode()
-		elseif LWeaponZone ==3 and rThumbOut then
+		elseif LWeaponZone ==3 and rThumb and rThumbSwitchState==0 then
 			pawn:ToggleUnderbarrelAttachment()
+			rThumbSwitchState=1
 		end
 	end
+	
+	
+	
+		--LEANING
+	
+	uevr.params.vr.get_pose(0, HmdVRPos, HmdVRRot)
+	VRHeightDiffFactor = HmdVRPos.y-DefaultVRHeight
+	--VRShiftDiffFacotr = HmdVRPos.z- DefaultVRShift
+	
+	pawn.FreeLeanZ= VRHeightDiffFactor*100
+	--print(HmdVRPos.z)
+
+if PhysicalLeaning then
+	if LTrigger > 230 then
+		pawn.FreeLeanZ= VRHeightDiffFactor*80
+		isLean=true
+		uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "false")
+		
+		DefaultVRShift= pawn:K2_GetActorLocation()
+		
+		
+		VRShiftDiff= HmdLocation-DefaultVRShift
+		
+		VRShiftDiffX= (VRShiftDiff.x)*math.cos(-RotDiff/180*math.pi)- (VRShiftDiff.y)*math.sin(-RotDiff/180*math.pi)
+		VRShiftDiffY=  (VRShiftDiff.x)*math.sin(-RotDiff/180*math.pi) + (VRShiftDiff.y)*math.cos(-RotDiff/180*math.pi)
+	--	print(RotDiff)
+	--	print(VRShiftDiffX .. "            ".. VRShiftDiffY)
+		pawn.FreeLeanX= VRShiftDiffY*0.38
+		if  math.abs(VRShiftDiffY)> 30 then
+		pawn.FreeLeanZ= VRHeightDiffFactor*40
+		end
+	else
+		uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "true")
+	--	if isLean then
+	--		DefaultVRHeight=HmdVRPos.y
+	--		isLean= false
+	--	end
+		pawn.FreeLeanX=0
+	end
+	
+	if ResetHeight then
+		DefaultVRHeight=HmdVRPos.y
+		ResetHeight=false
+	end
+end
+	
 --print(LWeaponZone)
 --DEBUG PRINTS--
 --TURN ON FOR HELP WITH COORDINATES
@@ -917,12 +1004,12 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 --print("                   ")
 
 ----COORDINATES FOR WEAPON ZONES:
-print("RHandz: " .. RHandWeaponZ .. "     Lhandz: ".. LHandWeaponZ )
-print("RHandx: " .. RHandWeaponX .. "     Lhandx: ".. LHandWeaponX )
-print("RHandy: " .. RHandWeaponY .. "     Lhandy: ".. LHandWeaponY )
-print("                   ")
-print("                   ")
-print("                   ")
+--print("RHandz: " .. RHandWeaponZ .. "     Lhandz: ".. LHandWeaponZ )
+--print("RHandx: " .. RHandWeaponX .. "     Lhandx: ".. LHandWeaponX )
+--print("RHandy: " .. RHandWeaponY .. "     Lhandy: ".. LHandWeaponY )
+--print("                   ")
+--print("                   ")
+--print("                   ")
 
 
 end)

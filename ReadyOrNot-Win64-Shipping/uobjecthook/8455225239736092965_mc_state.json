@@ -10,7 +10,7 @@
         "SkeletalMeshComponent ItemMesh"
     ],
     "state": {
-        "hand": 1,
+        "hand": 0,
         "location_offset": {
             "x": 0.0,
             "y": 0.0,

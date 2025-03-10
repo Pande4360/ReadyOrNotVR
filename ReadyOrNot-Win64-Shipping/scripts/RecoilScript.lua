@@ -42,7 +42,7 @@ local ExtraTickCount=0
 local RotSecondaryExtra=0
 local VertDiffsecondaryOut=0
 local RotSecondaryExtraOut=0
-
+pcall(function()
 uevr.sdk.callbacks.on_xinput_get_state(
 function(retval, user_index, state)
 
@@ -123,14 +123,21 @@ end)
 uevr.sdk.callbacks.on_pre_engine_tick(
 	function(engine, delta)
 		pawn = api:get_local_pawn(0)
+	pcall(function()
 		UsedPrimary=pawn.InventoryComp.LastEquippedWeapon.HeatTime
+	end)	
+	
+	pcall(function()
 		EquippedWpn=pawn.InventoryComp.LastEquippedWeapon
+	end)
+	
+	pcall(function()	
 		if string.find(EquippedWpn:get_fname():to_string(), "Secondary") then
 			isSecondary=true
 		elseif string.find(EquippedWpn:get_fname():to_string(), "Primary") then
 			isSecondary=false
 		end
-		
+	end)	
 		--print(WeaponType:get_fname():to_string())
 	
 		local CurrentPrimary = pawn.InventoryComp.SpawnedGear.Primary.ItemMesh
@@ -277,6 +284,7 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 	
 	if isUpRecoilActive then
 	UEVR_UObjectHook.get_or_add_motion_controller_state(CurrentPrimary):set_location_offset(Vector3d.new(-5 + Backrecoil, -5 - VertDiffOut*0.8, -1))
+	--print(VertDiffOut)
 	UEVR_UObjectHook.get_or_add_motion_controller_state(CurrentSecondary):set_location_offset(Vector3d.new(-7.369999885559082 + BackrecoilSecondary, -6.860 - VertDiffsecondaryOut/5, -1))
 	elseif not isUpRecoilActive then
 	UEVR_UObjectHook.get_or_add_motion_controller_state(CurrentPrimary):set_location_offset(Vector3d.new(-5 + Backrecoil, -5 , -1))
@@ -328,3 +336,4 @@ uevr.sdk.callbacks.on_post_engine_tick(
 
 end)
 
+end)
