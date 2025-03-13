@@ -90,11 +90,11 @@ local function update_weapon_offset(weapon_mesh)
     local attach_socket_name = weapon_mesh.AttachSocketName
 	local PMesh= pawn.Mesh1P
     -- Get socket transforms
-    local default_transform = PMesh:GetSocketTransform("pinky_1_RI",2)--Transform(attach_socket_name, 2)
-    local offset_transform = PMesh:GetSocketTransform("Root",2)--weapon_mesh:GetSocketTransform("jnt_offset", 2)
+    local default_transform = PMesh:GetSocketTransform("pinky_4_RI",2)--Transform(attach_socket_name, 2)
+    --local offset_transform = PMesh:GetSocketTransform("Root",2)--weapon_mesh:GetSocketTransform("jnt_offset", 2)
     local location_diff = kismet_math_library:Subtract_VectorVector(
         default_transform.Translation,
-        offset_transform.Translation
+        Vector3f.new(0,0,0)
     )
     -- from UE to UEVR X->Z Y->-X, Z->-Y
     -- Z - forward, X - negative right, Y - negative up
