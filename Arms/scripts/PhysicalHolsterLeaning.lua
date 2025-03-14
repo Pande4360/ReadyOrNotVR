@@ -1,11 +1,14 @@
 --CONFIG--
 --------	
-	local isRhand = true
-	local isLeftHandModeTriggerSwitchOnly = true
-	local HapticFeedback = true
-	local PhysicalLeaning = true
-	local LeanAngle = 30		--Treshhold before it starts leaning
-	local PreLeanAngle = 15     --Treshhold before roomscale gets deactivated, but character is not really leaning but you can start peeking around corners without exposing yourself.
+	local isRhand = true							--right hand config
+	local isLeftHandModeTriggerSwitchOnly = true    --only swap triggers for left hand
+	local HapticFeedback = true                     --haptic feedback for holsters
+	local PhysicalLeaning = true                    --Physical Leaning
+	local DisableUnnecessaryBindings= true          --Disables some buttons that are replaced by gestures
+	local SprintingActivated=true                   --
+	local HolstersActive=true                       --
+	local WeaponInteractions=true                   --Weapon interation gestures like reloading
+	local isRoomscale=true                          --Roomscale swap when leaning
 --------
 --------	
 	local api = uevr.api
@@ -426,7 +429,8 @@ function(retval, user_index, state)
 	Ybutton  = isButtonPressed(state, XINPUT_GAMEPAD_Y)
 	inMenu = api:get_player_controller().bShowMouseCursor
 	
-	
+
+if DisableUnnecessaryBindings then	
 	if isRhand or isLeftHandModeTriggerSwitchOnly then
 		
 		if not rShoulder then
@@ -458,7 +462,8 @@ function(retval, user_index, state)
 			isSprinting=false
 		end
 	end
-	
+end	
+
 	if not isRhand then
 		state.Gamepad.bLeftTrigger=RTrigger
 		state.Gamepad.bRightTrigger=LTrigger
@@ -514,6 +519,8 @@ function(retval, user_index, state)
 			end
 		end
 	end
+
+if DisableUnnecessaryBindings then	
 	if not inMenu then
 		unpressButton(state, XINPUT_GAMEPAD_LEFT_SHOULDER	)		
 		unpressButton(state, XINPUT_GAMEPAD_B)
@@ -521,7 +528,7 @@ function(retval, user_index, state)
 		unpressButton(state, XINPUT_GAMEPAD_X				)	
 		unpressButton(state, XINPUT_GAMEPAD_Y				)
 	end
-	
+end	
 	
 	
 	
@@ -758,12 +765,13 @@ uevr.sdk.callbacks.on_pre_engine_tick(
 		end
 	--print(TabletObj.bIsTabletAwake)
 	--Stamina
+if SprintingActivated then
 	if isSprinting then
 		SubStamina()
 	else AddStamina()
 	end
 --	print(Stamina)
-	
+end	
 	
 	--if PhysicalLeaning then
 	--	if HmdRotation.z > LeanAngle then
@@ -889,6 +897,8 @@ end
 	-----EDIT HERE-------------
 	---------------------------
 	--define Haptic zones RHand Z: UP/DOWN, Y:RIGHT LEFT, X FORWARD BACKWARD, checks if RHand is in RZone
+if HolstersActive then	
+
 	if 	   RCheckZone(-10, 15, 10, 30, -10, 20) then 
 		isHapticZoneR =true
 		RZone=1-- RShoulder
@@ -976,8 +986,10 @@ end
 		isHapticZoneL= false
 		LZone=0--EMPTY
 	end
+end
 	
 	--define Haptic Zone RWeapon
+if WeaponInteractions then
 	if isRhand then	
 		if LHandWeaponZ <-5 and LHandWeaponZ > -30 and LHandWeaponX < 20 and LHandWeaponX > -15 and LHandWeaponY < 12 and LHandWeaponY > -12 then
 			isHapticZoneWL = true
@@ -1007,7 +1019,7 @@ end
 			isHapticZoneWR= false
 	    end
 	end
-	
+end	
 	
 	--Code to equip
 	if isRhand then
@@ -1153,7 +1165,11 @@ if PhysicalLeaning then
 			pawn.FreeLeanZ= VRHeightDiffFactor*40
 			end
 		else
-			uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "true")
+			if isRoomscale then
+				uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "true")
+			else
+				uevr.params.vr.set_mod_value("VR_RoomscaleMovement", "false")
+			end
 		--	if isLean then
 		--		DefaultVRHeight=HmdVRPos.y
 		--		isLean= false

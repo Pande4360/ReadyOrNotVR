@@ -2,6 +2,9 @@
 --YOU CAN EDIT THIS LINE true or false
 local isUpRecoilActive = true
 local isRHand =true
+local OffsetBackFront 	=0
+local OffsetLeftRight 	=0
+local OffsetUPDown		=0
 -----------------------------
 
 
@@ -90,15 +93,17 @@ local function update_weapon_offset(weapon_mesh)
     local attach_socket_name = weapon_mesh.AttachSocketName
 	local PMesh= pawn.Mesh1P
     -- Get socket transforms
-    local default_transform = PMesh:GetSocketTransform("pinky_4_RI",2)--Transform(attach_socket_name, 2)
-    --local offset_transform = PMesh:GetSocketTransform("Root",2)--weapon_mesh:GetSocketTransform("jnt_offset", 2)
+    local default_transform = PMesh:GetSocketTransform("thumb_2_RI",2)--Transform(attach_socket_name, 2)
+    local offset_transform = PMesh:GetSocketTransform("pinky_4_RI",2)--weapon_mesh:GetSocketTransform("jnt_offset", 2)
+	
+	local middle_translation = kismet_math_library:Add_VectorVector(default_transform.Translation, offset_transform.Translation)
     local location_diff = kismet_math_library:Subtract_VectorVector(
-        default_transform.Translation,
+        middle_translation,--.Translation,
         Vector3f.new(0,0,0)
     )
     -- from UE to UEVR X->Z Y->-X, Z->-Y
     -- Z - forward, X - negative right, Y - negative up
-    local lossy_offset = Vector3f.new(-0+location_diff.y, -VertDiff-0+location_diff.z, -location_diff.x)
+    local lossy_offset = Vector3f.new(-OffsetBackFront+location_diff.y/2, OffsetUPDown-VertDiff-0+location_diff.z/2, OffsetLeftRight-location_diff.x/2)
     -- Apply the offset to the weapon using motion controller state
 	
     UEVR_UObjectHook.get_or_add_motion_controller_state(PMesh):set_hand(1)

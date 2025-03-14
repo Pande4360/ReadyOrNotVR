@@ -29,21 +29,8 @@ Also recommended: [M320 Sights flipped up for better aiming](https://www.nexusmo
   Means if you lean into a door and let go of trigger you will be standing in the door openly.
 - Leaning works while moving.
 ## Changelog:
-- 1.16: Added correct Recoil Angle Source and Recovery Time
-- 1.17: Improved Recoil effects, e.g. Pistol local rotation recoil added per shot,
-	Added positional recoil to the back, seperated scripts for customization
-- 1.18: added virtual Holster system
-- 1.19: DPAD: Changed to LHand to HEAD mode (you can change it back if you want to)
-	Disable Command Menu when hovering on Holsterslots
-	Added leftHandGrip to LHip: Taser
-	Added Weapon interaction zones for Reloading, attachments, Firemode switch
-	LHandLocation                                 Action
-	Below gun + LGRIP = RELOADING or Mag Instpection
-	slightly above RHand + LTrigger = Firemode switch
-	slightly above RHand and in front + LThumbstickButton = Attachment on/off
-- 1.19b: fixed 1.19 script issue
-- 1.20: added Tablet to LGrip Center Back, added Low ready on Rstick UP, added Lhanded mode Trigger swap only, added melee to both hands.
-- 1.21: Fixed Recoil SCript not activating on level change
-- 1.22: Physical Leaning System
-- 1.23: added sprinting system and adjusted some holsters
-- 2.0: Reworked for visible Arms
+- all previous changes+
+- 2.0: Release of arms profile
+- 2.01: Adjusted Weapon positino to be more central and higher
+	Eliminated extra rotation caused by leaning
+- 2.02: Small Offset change, weapon further away, Tablet rescaled
