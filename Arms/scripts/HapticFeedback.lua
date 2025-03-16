@@ -1,6 +1,6 @@
-
+require("CONFIG")
 --YOU CAN EDIT THIS LINE true/false
-local HapticFeedbackActive=true
+--local HapticFeedbackActive=true
 -----------------------------------
 local api = uevr.api
 

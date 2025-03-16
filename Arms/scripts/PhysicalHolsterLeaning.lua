@@ -1,14 +1,15 @@
+require("CONFIG")
 --CONFIG--
 --------	
-	local isRhand = true							--right hand config
-	local isLeftHandModeTriggerSwitchOnly = true    --only swap triggers for left hand
-	local HapticFeedback = true                     --haptic feedback for holsters
-	local PhysicalLeaning = true                    --Physical Leaning
-	local DisableUnnecessaryBindings= true          --Disables some buttons that are replaced by gestures
-	local SprintingActivated=true                   --
-	local HolstersActive=true                       --
-	local WeaponInteractions=true                   --Weapon interation gestures like reloading
-	local isRoomscale=true                          --Roomscale swap when leaning
+	--local isRhand = true							--right hand config
+	--local isLeftHandModeTriggerSwitchOnly = true    --only swap triggers for left hand
+	--local HapticFeedback = true                     --haptic feedback for holsters
+	--local PhysicalLeaning = true                    --Physical Leaning
+	--local DisableUnnecessaryBindings= true          --Disables some buttons that are replaced by gestures
+	--local SprintingActivated=true                   --
+	--local HolstersActive=true                       --
+	--local WeaponInteractions=true                   --Weapon interation gestures like reloading
+	--local isRoomscale=true                          --Roomscale swap when leaning
 --------
 --------	
 	local api = uevr.api
@@ -430,14 +431,16 @@ function(retval, user_index, state)
 	inMenu = api:get_player_controller().bShowMouseCursor
 	
 
-if DisableUnnecessaryBindings then	
+	
 	if isRhand or isLeftHandModeTriggerSwitchOnly then
-		
-		if not rShoulder then
-			unpressButton(state, XINPUT_GAMEPAD_DPAD_RIGHT		)
-			unpressButton(state, XINPUT_GAMEPAD_DPAD_LEFT		)
-			--unpressButton(state, XINPUT_GAMEPAD_DPAD_UP			)
-			unpressButton(state, XINPUT_GAMEPAD_DPAD_DOWN	    )
+		if DisableUnnecessaryBindings then
+			if not rShoulder then
+				unpressButton(state, XINPUT_GAMEPAD_DPAD_RIGHT		)
+				unpressButton(state, XINPUT_GAMEPAD_DPAD_LEFT		)
+				unpressButton(state, XINPUT_GAMEPAD_DPAD_UP			)
+				unpressButton(state, XINPUT_GAMEPAD_DPAD_DOWN	    )
+	
+			end
 		end
 		if ThumbRY >= 30000 and Stamina >0 then
 			pawn.RunSpeed=600
@@ -447,12 +450,14 @@ if DisableUnnecessaryBindings then
 			isSprinting=false
 		end
 	else 
-		
-		if not lShoulder then
-			unpressButton(state, XINPUT_GAMEPAD_DPAD_RIGHT		)
-			unpressButton(state, XINPUT_GAMEPAD_DPAD_LEFT		)
-			--unpressButton(state, XINPUT_GAMEPAD_DPAD_UP			)
-			unpressButton(state, XINPUT_GAMEPAD_DPAD_DOWN	    )
+		if DisableUnnecessaryBindings then
+			if not lShoulder then
+				
+				unpressButton(state, XINPUT_GAMEPAD_DPAD_RIGHT		)
+				unpressButton(state, XINPUT_GAMEPAD_DPAD_LEFT		)
+				unpressButton(state, XINPUT_GAMEPAD_DPAD_UP			)
+				unpressButton(state, XINPUT_GAMEPAD_DPAD_DOWN	    )
+			end
 		end
 		if ThumbLY >= 30000 and Stamina >0 then
 			pawn.RunSpeed=600
@@ -462,7 +467,7 @@ if DisableUnnecessaryBindings then
 			isSprinting=false
 		end
 	end
-end	
+
 
 	if not isRhand then
 		state.Gamepad.bLeftTrigger=RTrigger
@@ -530,6 +535,11 @@ if DisableUnnecessaryBindings then
 	end
 end	
 	
+	if not inMenu then
+		unpressButton(state, XINPUT_GAMEPAD_RIGHT_THUMB)
+		unpressButton(state, XINPUT_GAMEPAD_LEFT_THUMB)
+		unpressButton(state, XINPUT_GAMEPAD_LEFT_SHOULDER	)	
+	end
 	
 	
 	
@@ -629,7 +639,22 @@ end
 		end
 	
 	end
-	
+
+if isRhand  then	
+	if rThumb then
+		pressButton(state,XINPUT_GAMEPAD_DPAD_LEFT)
+	end
+	if lThumb and RWeaponZone ~= 3 then
+		pressButton(state,XINPUT_GAMEPAD_DPAD_UP)
+	end
+else 
+	if rThumb then
+		pressButton(state,XINPUT_GAMEPAD_DPAD_UP)
+	end
+	if lThumb then
+		pressButton(state,XINPUT_GAMEPAD_DPAD_LEFT)
+	end	
+end
 	--local VecA= Vector3f.new(x,y,z)
 	
 --	print(VecA.x)

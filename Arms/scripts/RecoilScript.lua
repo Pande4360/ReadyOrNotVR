@@ -1,10 +1,8 @@
-
+require("CONFIG")
 --YOU CAN EDIT THIS LINE true or false
-local isUpRecoilActive = true
-local isRHand =true
-local OffsetBackFront 	=0
-local OffsetLeftRight 	=0
-local OffsetUPDown		=0
+--local isUpRecoilActive = true
+--local isRhand =true
+
 -----------------------------
 
 
@@ -63,10 +61,12 @@ local find_static_class = function(name)
     local c = find_required_object(name)
     return c:get_class_default_object()
 end
+
 local kismet_string_library = find_static_class("Class /Script/Engine.KismetStringLibrary")
 local kismet_math_library = find_static_class("Class /Script/Engine.KismetMathLibrary")
 local kismet_system_library = find_static_class("Class /Script/Engine.KismetSystemLibrary")
 local Statics = find_static_class("Class /Script/Engine.GameplayStatics")
+
 function isButtonPressed(state, button)
 	return state.Gamepad.wButtons & button ~= 0
 end
@@ -103,7 +103,7 @@ local function update_weapon_offset(weapon_mesh)
     )
     -- from UE to UEVR X->Z Y->-X, Z->-Y
     -- Z - forward, X - negative right, Y - negative up
-    local lossy_offset = Vector3f.new(-OffsetBackFront+location_diff.y/2, OffsetUPDown-VertDiff-0+location_diff.z/2, OffsetLeftRight-location_diff.x/2)
+    local lossy_offset = Vector3f.new(location_diff.y/2, -VertDiff-0+location_diff.z/2, -location_diff.x/2)
     -- Apply the offset to the weapon using motion controller state
 	
     UEVR_UObjectHook.get_or_add_motion_controller_state(PMesh):set_hand(1)
@@ -391,7 +391,7 @@ uevr.sdk.callbacks.on_post_engine_tick(
 			uevr.params.vr.set_mod_value("VR_AimMethod" , "0")
 			isShooting=true
 			if ResetTick==0 then
-				if isRHand then
+				if isRhand then
 				uevr.params.vr.set_mod_value("VR_AimMethod" , "2")
 				else
 				uevr.params.vr.set_mod_value("VR_AimMethod" , "3")
@@ -400,7 +400,7 @@ uevr.sdk.callbacks.on_post_engine_tick(
 			
 		elseif UsedPrimary>0.2 then
 			isShooting=false
-			if isRHand then
+			if isRhand then
 				uevr.params.vr.set_mod_value("VR_AimMethod" , "2")
 				else
 				uevr.params.vr.set_mod_value("VR_AimMethod" , "3")
